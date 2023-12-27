@@ -1,12 +1,27 @@
-import StringSchema from './StringSchema.js';
-import FunctionSchema from './FunctionSchema.js';
-
-export default class Validator {
-  string() {
-    return new StringSchema([(value) => typeof value === 'string']);
+export default class FunctionSchema {
+  constructor(validators, context = {}, expectedValue = null, args = []) {
+    this.validators = validators;
+    this.context = context;
+    this.expectedValue = expectedValue;
+    this.args = args;
   }
 
-  function() {
-    return new FunctionSchema([(value) => typeof value === 'function']);
+  isValid(fn) {
+    if (!this.expectedValue) {
+      return this.validators.every((validator) => validator(fn) === true);
+    }
+    return fn.call(this.context, this.args) === this.expectedValue;
+  }
+
+  expect(value) {
+    return new FunctionSchema(this.validators, this.context, value, this.args);
+  }
+
+  callWith(context) {
+    return new FunctionSchema(this.validators, context, this.expectedValue, this.args);
+  }
+
+  arguments(args) {
+    return new FunctionSchema(this.validators, this.context, this.expectedValue, args);
   }
 }
